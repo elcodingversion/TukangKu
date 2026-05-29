@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- Entity Validations ---
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'createdAt']) 
+        && data.keys().size() <= 6
+        && data.email is string && data.email.size() <= 256
+        && data.createdAt is number;
+    }
+
+    function isValidLog(data) {
+      return data.keys().hasAll(['diagnosis', 'completedAt', 'totalCost'])
+        && data.diagnosis.keys().hasAll(['item', 'cause', 'photoUrl'])
+        && data.diagnosis.item is string && data.diagnosis.item.size() <= 200
+        && data.diagnosis.photoUrl is string && data.diagnosis.photoUrl.size() <= 2000
+        && data.completedAt is number
+        && data.totalCost is number;
+    }
+
+    function isValidReminder(data) {
+      return data.keys().hasAll(['title', 'message', 'dueDate', 'type'])
+        && data.title is string && data.title.size() <= 100
+        && data.dueDate is number
+        && data.type is string;
+    }
+
+    // --- Match Blocks ---
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data)
+        && request.resource.data.email == resource.data.email; // Email immutable
+      
+      match /logs/{logId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidLog(request.resource.data) && isValidId(logId);
+        allow update: if isOwner(userId) && isValidLog(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /reminders/{reminderId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidReminder(request.resource.data) && isValidId(reminderId);
+        allow update: if isOwner(userId) && isValidReminder(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

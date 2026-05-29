@@ -1,0 +1,69 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile information.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["email", "createdAt"]
+    },
+    "RepairDiagnosis": {
+      "title": "Repair Diagnosis",
+      "description": "Details about a diagnosed repair problem.",
+      "type": "object",
+      "properties": {
+        "item": { "type": "string" },
+        "cause": { "type": "string" },
+        "severity": { "type": "number" },
+        "urgency": { "type": "string" },
+        "fixability": { "type": "string" },
+        "estimatedTime": { "type": "string" },
+        "diagnosisText": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "timestamp": { "type": "number" }
+      }
+    },
+    "MaintenanceLog": {
+      "title": "Maintenance Log",
+      "description": "A record of a completed repair.",
+      "type": "object",
+      "properties": {
+        "diagnosis": { "$ref": "#/entities/RepairDiagnosis" },
+        "completedAt": { "type": "number" },
+        "totalCost": { "type": "number" },
+        "notes": { "type": "string" }
+      }
+    },
+    "MaintenanceReminder": {
+      "title": "Maintenance Reminder",
+      "description": "A scheduled maintenance reminder.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "dueDate": { "type": "number" },
+        "originalLogId": { "type": "string" },
+        "type": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles by ID."
+    },
+    "/users/{userId}/logs/{logId}": {
+      "schema": "MaintenanceLog",
+      "description": "Repair history for a user."
+    },
+    "/users/{userId}/reminders/{reminderId}": {
+      "schema": "MaintenanceReminder",
+      "description": "Scheduled reminders for a user."
+    }
+  }
+}

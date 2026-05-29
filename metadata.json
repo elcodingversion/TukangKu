@@ -1,0 +1,10 @@
+{
+  "name": "TUKANGKU",
+  "description": "AI-powered repair companion for Indonesian households. Diagnose damage, calculate costs, and generate professional repair work orders.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
